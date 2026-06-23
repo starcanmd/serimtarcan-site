@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Serim Tarcan</title>
+<meta name="description" content="A physician with a mission to improve care delivery through technology. Clinical medicine, health systems, and AI." />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Serim Tarcan" />
+<meta property="og:description" content="A physician with a mission to improve care delivery through technology." />
+<meta property="og:url" content="https://serimtarcan.com" />
+<meta property="og:image" content="https://serimtarcan.com/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Serim Tarcan" />
+<meta name="twitter:description" content="A physician with a mission to improve care delivery through technology." />
+<meta name="twitter:image" content="https://serimtarcan.com/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --paper: #f4ece5;
+    --ink: #2b2436;
+    --muted: #6a5f78;
+    --accent: #c07b75;
+    --label: color-mix(in srgb, var(--muted), var(--ink) 50%);
+    --display: "Instrument Serif", Georgia, serif;
+    --body: "Newsreader", Georgia, serif;
+    --halo-sm: 0 0 1px var(--paper), 0 0 9px var(--paper);
+    --halo-lg: 0 0 2px var(--paper), 0 0 24px var(--paper), 0 0 48px var(--paper);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-weight: 300;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background 1.4s ease, color 1.4s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #water { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+  /* paper veil: takes the saturation edge off the texture under content */
+  #veil {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 82% 58% at 50% 34%, color-mix(in srgb, var(--paper) 54%, transparent), transparent 76%),
+      linear-gradient(180deg, color-mix(in srgb, var(--paper) 30%, transparent), color-mix(in srgb, var(--paper) 22%, transparent));
+    transition: background 1.4s ease;
+  }
+
+  .wrap { position: relative; z-index: 2; }
+
+  /* ---- top controls ---- */
+  .controls {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 4;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 22px clamp(20px, 5vw, 56px); pointer-events: none;
+  }
+  .controls > * { pointer-events: auto; }
+
+  .light-toggle { display: flex; gap: 4px; font-family: var(--body); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .light-toggle button {
+    background: none; border: none; color: var(--label); cursor: pointer;
+    padding: 6px 9px; border-radius: 999px; transition: color .5s ease, background .5s ease;
+    font-family: inherit; font-size: inherit; letter-spacing: inherit; text-transform: inherit;
+    text-shadow: var(--halo-sm);
+  }
+  .light-toggle button[aria-pressed="true"] { color: var(--paper); background: var(--ink); text-shadow: none; }
+  .light-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sound-toggle {
+    background: color-mix(in srgb, var(--paper) 45%, transparent);
+    border: 1px solid var(--muted); color: var(--label);
+    font-family: var(--body); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 7px 14px; border-radius: 999px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: color .5s ease, border-color .5s ease; backdrop-filter: blur(4px);
+  }
+  .sound-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sound-toggle .wave {
+    display: inline-block; width: 14px; height: 9px; background: currentColor;
+    -webkit-mask: var(--wave-mask) center / contain no-repeat; mask: var(--wave-mask) center / contain no-repeat;
+    opacity: .35; transition: opacity .4s ease;
+  }
+  .sound-toggle[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); }
+  .sound-toggle[aria-pressed="true"] .wave { opacity: 1; animation: pulse 2.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+  /* ---- hero ---- */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 0 clamp(20px, 5vw, 56px); max-width: 1080px; margin: 0 auto;
+  }
+  .wordmark {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(56px, 11vw, 150px); line-height: 0.86; letter-spacing: -0.02em;
+    margin-left: -0.03em; text-shadow: var(--halo-lg);
+  }
+  .wordmark em { font-style: italic; color: var(--accent); transition: color 1.4s ease; }
+  .wordmark em.dot { cursor: pointer; transition: color 1.4s ease, text-shadow .45s ease; }
+  .wordmark em.dot:hover, .wordmark em.dot:focus-visible { outline: none; text-shadow: 0 0 22px var(--accent), 0 0 44px var(--accent); }
+  .positioning {
+    font-family: var(--display); font-style: italic; font-size: clamp(16px, 2.3vw, 25px);
+    color: var(--muted); margin-top: clamp(22px, 4vh, 40px); line-height: 1.3; white-space: nowrap;
+    transition: color 1.4s ease; text-shadow: var(--halo-lg);
+  }
+  .meta {
+    margin-top: clamp(40px, 7vh, 72px); display: flex; flex-wrap: wrap;
+    justify-content: space-between; row-gap: 32px; max-width: 1020px;
+  }
+  .meta > div { flex: 0 0 auto; max-width: 210px; }
+  .meta dt {
+    font-family: var(--body); font-weight: 600; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--label); margin-bottom: 8px; transition: color 1.4s ease; text-shadow: var(--halo-sm);
+  }
+  .meta dd { font-size: 16px; line-height: 1.45; text-shadow: var(--halo-sm); }
+
+  .connect {
+    margin-top: clamp(40px, 7vh, 72px); display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    font-family: var(--body); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .connect a {
+    color: var(--accent); text-decoration: none;
+    border: 1px solid var(--accent); border-radius: 999px; padding: 8px 16px;
+    text-shadow: none;
+    transition: background .35s ease, color .35s ease, border-color .35s ease;
+  }
+  .connect a:hover { background: var(--accent); color: var(--paper); }
+  .connect a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .scrollcue {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    font-family: var(--body); font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--muted); opacity: .75; text-shadow: var(--halo-sm);
+  }
+
+  .edge {
+    height: 1px; border: none; background: linear-gradient(90deg, transparent, var(--muted), transparent);
+    opacity: .35; max-width: 1080px; margin: 0 auto;
+  }
+
+  /* ---- archive ---- */
+  .archive { max-width: 1080px; margin: 0 auto; padding: clamp(60px, 12vh, 120px) clamp(20px, 5vw, 56px) 40px; }
+  .archive-eyebrow {
+    font-family: var(--body); font-weight: 600; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--label); margin-bottom: clamp(28px, 5vh, 48px); transition: color 1.4s ease; text-shadow: var(--halo-sm);
+  }
+  .record { display: grid; grid-template-columns: 88px 1fr; gap: 4px 28px; padding: 26px 0; align-items: baseline; }
+  .record + .record { border-top: 1px solid; border-image: linear-gradient(90deg, var(--muted), transparent) 1; }
+  .record-year { font-family: var(--body); font-size: 13px; letter-spacing: 0.05em; color: var(--label); padding-top: 10px; transition: color 1.4s ease; text-shadow: var(--halo-sm); }
+  .record-body { grid-column: 2; }
+  .record-tags { font-family: var(--body); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; transition: color 1.4s ease; text-shadow: var(--halo-sm); }
+  .record-title { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 4vw, 42px); line-height: 1.05; letter-spacing: -0.01em; text-shadow: var(--halo-lg); }
+  .record-title .role { color: var(--muted); font-style: italic; transition: color 1.4s ease; }
+  .record-desc { margin-top: 10px; font-size: 17.5px; line-height: 1.55; max-width: 56ch; color: var(--ink); text-shadow: var(--halo-sm); }
+  .page-note { font-size: clamp(16px, 2vw, 18px); line-height: 1.65; max-width: none; color: var(--ink); text-shadow: var(--halo-sm); }
+  .page-note + .page-note { margin-top: 1.15em; }
+  .page-credit { font-family: var(--body); font-size: 15px; line-height: 1.6; color: var(--ink); margin-top: 16px; max-width: none; }
+  .archive-eyebrow.design-sub { margin-top: clamp(36px, 6vh, 60px); }
+  #about .record { opacity: 1; transform: none; transition: none; }
+
+  footer {
+    max-width: 1080px; margin: 0 auto; padding: 40px clamp(20px, 5vw, 56px) 80px;
+    font-family: var(--body); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    transition: color 1.4s ease;
+  }
+  footer .fnav { display: flex; gap: 18px; flex-wrap: wrap; }
+  footer a { color: var(--accent); text-decoration: none; transition: color 1.4s ease; text-shadow: var(--halo-sm); }
+  footer a:hover { color: var(--ink); }
+  footer span { text-shadow: var(--halo-sm); }
+  footer .credit { flex-basis: 100%; opacity: .72; text-transform: none; letter-spacing: 0.03em; }
+
+  /* ---- about (easter egg) ---- */
+  #about {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: flex-start; justify-content: center;
+    overflow-y: auto;
+    padding: clamp(28px, 6vw, 96px);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(18px) saturate(1.05); -webkit-backdrop-filter: blur(18px) saturate(1.05);
+    opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility .6s ease;
+  }
+  #about.open { opacity: 1; visibility: visible; }
+  .about-inner { max-width: 620px; margin: auto 0; }
+  .about-block { margin-top: 40px; }
+  .about-inner > * { opacity: 0; transform: translateY(14px); }
+  #about.open .about-inner > * { animation: paintIn .9s cubic-bezier(.22,.61,.36,1) forwards; }
+  #about.open .about-inner > *:nth-child(2) { animation-delay: .08s; }
+  #about.open .about-inner > *:nth-child(3) { animation-delay: .16s; }
+  #about.open .about-inner > *:nth-child(4) { animation-delay: .24s; }
+  #about.open .about-inner > *:nth-child(5) { animation-delay: .32s; }
+  #about.open .about-inner > *:nth-child(6) { animation-delay: .40s; }
+  .about-eyebrow { font-family: var(--body); font-weight: 600; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--label); margin-bottom: 18px; }
+  .about-title { font-family: var(--display); font-weight: 400; font-size: clamp(40px, 7vw, 72px); line-height: 0.95; letter-spacing: -0.02em; margin-bottom: 26px; }
+  .about-body p { font-size: clamp(17px, 2vw, 19px); line-height: 1.65; margin-top: 16px; color: var(--ink); }
+  .about-body em { font-style: italic; color: var(--accent); }
+  .about-close {
+    position: fixed; top: 24px; right: clamp(20px, 5vw, 56px); z-index: 11;
+    background: none; border: 1px solid var(--muted); color: var(--muted);
+    font-family: var(--body); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 8px 15px; border-radius: 999px; cursor: pointer; transition: color .4s ease, border-color .4s ease;
+  }
+  .about-close:hover, .about-close:focus-visible { color: var(--ink); border-color: var(--ink); outline: none; }
+
+  /* ---- reveal ---- */
+  .reveal { opacity: 0; transform: translateY(18px); }
+  .revealed .reveal { animation: paintIn 1.3s cubic-bezier(.22,.61,.36,1) forwards; }
+  .revealed .reveal:nth-child(2) { animation-delay: .12s; }
+  .revealed .reveal:nth-child(3) { animation-delay: .24s; }
+  .revealed .reveal:nth-child(4) { animation-delay: .36s; }
+  @keyframes paintIn { to { opacity: 1; transform: translateY(0); } }
+  .record { opacity: 0; transform: translateY(20px); transition: opacity 1s cubic-bezier(.22,.61,.36,1), transform 1s cubic-bezier(.22,.61,.36,1); }
+  .record.in { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 560px) {
+    .positioning { white-space: normal; font-size: 18px; }
+    .record { grid-template-columns: 1fr; }
+    .record-body { grid-column: 1; }
+    .record-year { padding-top: 0; }
+    .meta > div { max-width: 44%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal, .record { opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important; }
+    .sound-toggle[aria-pressed="true"] .wave { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <canvas id="water"></canvas>
+  <div id="veil"></div>
+
+  <div id="about" aria-hidden="true" role="dialog" aria-modal="true" aria-label="About Serim">
+    <button class="about-close" id="about-close">Close ·  esc</button>
+    <div class="about-inner">
+      <h2 class="about-title">The longer version</h2>
+      <div class="about-body">
+        <p>I started in clinical medicine and kept following two questions. Why does good care so often fail to reach the people who need it, and what would it take to fix that at scale.</p>
+        <p>The hardest lesson came at home for me. I lost my father to the same gaps I had been studying. After that, the clinic would never be enough for me. The system itself needed care, and I wanted to help build it.</p>
+        <p>This moved me from seeing patients as a physician to co-founding a digital health company for refugees, building AI products inside a large health system and a startup, advising health systems around the globe, and supporting founders as an investor.</p>
+        <p>Now I am heading to Stanford GSB to sharpen the operator and the founder in me. Along the way, I will write <em>The Rounds</em>, where I take apart how US healthcare really works for people coming from outside the system.</p>
+        <p>The plan from here is to build. A product where medicine and AI meet, amplified by someone who has sat on every side of the table. Still shaping what it could be. If that is the kind of thing you are working on too, I'm an email away.</p>
+      </div>
+
+      <div class="about-block">
+        <p class="about-eyebrow">Experiences</p>
+
+        <div class="record">
+          <div class="record-year">2026</div>
+          <div class="record-body">
+            <h2 class="record-title">7wire Ventures <span class="role">investor</span></h2>
+            <p class="record-desc">Supporting investment diligence, market research, and platform initiatives.</p>
+          </div>
+        </div>
+
+        <div class="record">
+          <div class="record-year">2022—25</div>
+          <div class="record-body">
+            <h2 class="record-title">McKinsey &amp; Company <span class="role">expert consultant</span></h2>
+            <p class="record-desc">Advised on commercial strategy, clinical operations transformation, and digital transformation across the US, UK, and the Gulf.</p>
+          </div>
+        </div>
+
+        <div class="record">
+          <div class="record-year">2019—21</div>
+          <div class="record-body">
+            <h2 class="record-title">AHG &amp; Virasoft <span class="role">product manager</span></h2>
+            <p class="record-desc">Led AI products in the region's largest integrated delivery network and at a Series A digital health startup.</p>
+          </div>
+        </div>
+
+        <div class="record">
+          <div class="record-year">2017—19</div>
+          <div class="record-body">
+            <h2 class="record-title">Hera <span class="role">co-founder</span></h2>
+            <p class="record-desc">Created a mobile health app that connected 1K+ refugee mothers and children to care they would have missed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="light-toggle" role="group" aria-label="Time of day">
+      <button data-light="dawn" aria-pressed="false">Dawn</button>
+      <button data-light="midday" aria-pressed="false">Midday</button>
+      <button data-light="night" aria-pressed="false">Night</button>
+    </div>
+    <button class="sound-toggle" id="sound" aria-pressed="false" aria-label="Toggle ambient sound">
+      <span class="wave" aria-hidden="true"></span><span id="sound-label">Sound off</span>
+    </button>
+  </div>
+
+  <div class="wrap">
+    <section class="hero" id="hero">
+      <h1 class="wordmark reveal">Ser<em class="dot" id="about-trigger" role="button" tabindex="0" aria-label="About Serim, the longer version">i</em>m</h1>
+      <p class="positioning reveal">A physician with a mission to improve care delivery through technology.</p>
+      <dl class="meta reveal">
+        <div><dt>Passion</dt><dd>Clinical medicine, systems &amp; design thinking, and AI</dd></div>
+        <div><dt>Reach</dt><dd>6 countries, 3 continents, 10M+ lives</dd></div>
+        <div><dt>Previously</dt><dd>McKinsey · 7wire Ventures · AHG · Harvard</dd></div>
+        <div><dt>Next</dt><dd>Stanford GSB</dd></div>
+      </dl>
+      <nav class="connect reveal" aria-label="Connect">
+        <a href="https://www.linkedin.com/in/serimtarcan/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://therounds.substack.com" target="_blank" rel="noopener">Substack</a>
+        <a href="https://github.com/starcanmd" target="_blank" rel="noopener">GitHub</a>
+        <a class="email-btn" href="mailto:starcan@stanford.edu">Email</a>
+      </nav>
+    </section>
+
+    <hr class="edge" />
+
+    <section class="archive">
+      <p class="archive-eyebrow">On This Design</p>
+      <p class="page-note">The background is a slow watercolor that drifts as you move and shifts with the time of day. This is similar to how impressionists have painted. The phase of the day you land on depends on the hour you arrive. And each phase features a unique piece by an Impressionist composer.</p>
+      <p class="page-credit">The compositions on this site are recorded, produced, and published by Gregor Quendel, and included by courtesy of classicals.de.</p>
+
+      <p class="archive-eyebrow design-sub">Why This Design</p>
+      <p class="page-note">The Impressionists have always impressed me, both the painters and the composers. Less for what they made, more for how they went about their craft.</p>
+      <p class="page-note">Painters used loose strokes instead of clean lines and left the picture unfinished. The composers did the same in sound. A piece could just trail off instead of tying up. They cared more about how a place felt than how exact it looked. Most of our days are the same too. Small, daily mistakes only matter up close. If we step back and look at the entire canvas, those imperfections lose their weight.</p>
+      <p class="page-note">They painted ordinary things, a café, a garden, a stretch of river. And they'd paint the same scene over and over to catch the light as it moved. The scene was never the same for them. Neither is anything else worth paying attention to in life. Every passing moment is there for us to observe its unique beauty until it changes for good.</p>
+      <p class="page-note">And lastly, they challenged what counted as good art by institutions and society and created on their own terms. It reminds me to carve my own path, trust my own experiences, and stay true to myself as much as I can. We don't have to follow the script to make something real.</p>
+      <p class="page-note">I think these are the real reasons why they stuck with me. It's how I've tried to live. I skipped the path I was supposed to take, and I'm learning to be okay with a story that keeps being reshaped. This site works the same way. It includes a few things worth noticing, but not a complete, finished account of me.</p>
+    </section>
+
+    <footer>
+      <div class="fnav">
+        <a href="https://www.linkedin.com/in/serimtarcan/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://therounds.substack.com" target="_blank" rel="noopener">Substack</a>
+        <a href="https://github.com/starcanmd" target="_blank" rel="noopener">GitHub</a>
+        <a href="mailto:starcan@stanford.edu">Email</a>
+      </div>
+    </footer>
+  </div>
+
+<script>
+(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- palettes: colored shadows, no true black, tuned for contrast ----
+  const palettes = {
+    dawn:   { paper:'#f4ece5', ink:'#2b2436', muted:'#6a5f78', accent:'#c07b75',
+              blobs:['#d8a6a0','#b3a3c6','#e0b56a','#8fb4ad','#c07b75'], daub:'#c07b75', dark:false },
+    midday: { paper:'#eff1eb', ink:'#232a36', muted:'#586273', accent:'#4f817c',
+              blobs:['#7fb3ad','#a3b58c','#a8c4cf','#d9c27a','#8fb4ad'], daub:'#4f817c', dark:false },
+    night:  { paper:'#18172a', ink:'#f0ebf6', muted:'#aaa3c0', accent:'#3b4ac0',
+              blobs:['#2e3350','#5f7ab3','#d9c27a','#6a5d8a','#9fb3d9'], daub:'#6f86b3', dark:true },
+  };
+  let current = 'dawn';
+  let audioReady=false, playing=false, loop=null, synth=null, reverb=null, step=0;
+
+  const root = document.documentElement;
+  function hexToRgba(hex, a) {
+    const h = hex.replace('#','');
+    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  function setLight(name) {
+    current = name;
+    const p = palettes[name];
+    root.style.setProperty('--paper', p.paper);
+    root.style.setProperty('--ink', p.ink);
+    root.style.setProperty('--muted', p.muted);
+    root.style.setProperty('--accent', p.accent);
+    document.querySelectorAll('.light-toggle button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.light === name ? 'true' : 'false');
+    });
+    applyPhaseAudio(name);
+    if (reduceMotion) drawStatic();
+  }
+  document.querySelectorAll('.light-toggle button').forEach(b => {
+    b.addEventListener('click', () => setLight(b.dataset.light));
+  });
+
+  // ---- water + daub canvas ----
+  const canvas = document.getElementById('water');
+  const ctx = canvas.getContext('2d');
+  let W, H, dpr;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.width = innerWidth * dpr; H = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+    if (reduceMotion) drawStatic();
+  }
+  window.addEventListener('resize', resize);
+
+  const sources = Array.from({length:5}, (_,i) => ({
+    bx: Math.random(), by: Math.random(), phase: Math.random()*Math.PI*2,
+    speed: 0.00006 + Math.random()*0.00006, amp: 0.18 + Math.random()*0.12, idx: i
+  }));
+
+  const daubs = [];
+  let lastX = 0, lastY = 0;
+  window.addEventListener('pointermove', (e) => {
+    if (reduceMotion) return;
+    const x = e.clientX * dpr, y = e.clientY * dpr;
+    if (Math.hypot(x-lastX, y-lastY) > 10*dpr) {
+      const p = palettes[current];
+      const col = Math.random() < 0.5 ? p.daub : p.blobs[(Math.random()*p.blobs.length)|0];
+      daubs.push({ x, y, r: (26+Math.random()*40)*dpr, life: 1, col, vx:(Math.random()-0.5)*0.3*dpr, vy:(Math.random()-0.5)*0.3*dpr });
+      if (daubs.length > 80) daubs.shift();
+      lastX = x; lastY = y;
+    }
+  }, { passive: true });
+
+  function drawStatic() {
+    const p = palettes[current];
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, hexToRgba(p.blobs[1], p.dark?0.4:0.14));
+    g.addColorStop(0.5, hexToRgba(p.paper, 0));
+    g.addColorStop(1, hexToRgba(p.blobs[3], p.dark?0.32:0.12));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0,0,W,H); ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  }
+
+  function frame(t) {
+    const p = palettes[current];
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = hexToRgba(p.paper, 0.05);
+    ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation = p.dark ? 'screen' : 'multiply';
+    for (const s of sources) {
+      const x = (s.bx + Math.sin(t*s.speed + s.phase)*s.amp) * W;
+      const y = (s.by + Math.cos(t*s.speed*0.8 + s.phase)*s.amp) * H;
+      const r = Math.max(W,H) * 0.42;
+      const col = p.blobs[s.idx % p.blobs.length];
+      const g = ctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0, hexToRgba(col, p.dark?0.08:0.055));
+      g.addColorStop(1, hexToRgba(col, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    }
+    for (let i = daubs.length-1; i >= 0; i--) {
+      const d = daubs[i];
+      d.x += d.vx; d.y += d.vy; d.life -= 0.012;
+      if (d.life <= 0) { daubs.splice(i,1); continue; }
+      const g = ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r);
+      const a = (p.dark?0.12:0.10) * d.life;
+      g.addColorStop(0, hexToRgba(d.col, a));
+      g.addColorStop(1, hexToRgba(d.col, 0));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // initial light from local hour
+  const hr = new Date().getHours();
+  const initial = hr >= 5 && hr < 11 ? 'dawn' : hr >= 11 && hr < 18 ? 'midday' : 'night';
+
+  resize();
+  setLight(initial);
+  if (reduceMotion) { drawStatic(); } else { requestAnimationFrame(frame); }
+
+  // ---- reveal ----
+  requestAnimationFrame(() => document.getElementById('hero').classList.add('revealed'));
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('.record').forEach((el,i) => { el.style.transitionDelay = (i*0.06)+'s'; io.observe(el); });
+  } else {
+    document.querySelectorAll('.record').forEach(el => el.classList.add('in'));
+  }
+
+  // placeholder links: keep them from jumping the page
+  document.querySelectorAll('a[data-placeholder]').forEach(a => {
+    if (a.getAttribute('href') === '#') a.addEventListener('click', e => e.preventDefault());
+  });
+
+  // ---- about overlay (the easter egg behind the i) ----
+  const aboutTrigger = document.getElementById('about-trigger');
+  const about = document.getElementById('about');
+  const aboutClose = document.getElementById('about-close');
+  function openAbout(){ about.classList.add('open'); about.setAttribute('aria-hidden','false'); aboutClose.focus(); }
+  function closeAbout(){ about.classList.remove('open'); about.setAttribute('aria-hidden','true'); aboutTrigger.focus(); }
+  aboutTrigger.addEventListener('click', openAbout);
+  aboutTrigger.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAbout(); } });
+  aboutClose.addEventListener('click', closeAbout);
+  about.addEventListener('click', e => { if (e.target === about) closeAbout(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && about.classList.contains('open')) closeAbout(); });
+
+  // ---- opt-in audio: a real Impressionist recording per phase ----
+  // Files live in ./audio next to this page (and map 1:1 to /public/audio in the build).
+  const soundBtn = document.getElementById('sound');
+  const soundLabel = document.getElementById('sound-label');
+  root.style.setProperty('--wave-mask', "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'><path d='M1 9 Q5 1 9 9 T17 9 T25 9' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'/></svg>\")");
+
+  // Light moves; the music moves with it.
+  const music = {
+    dawn:   { composer:'Ravel',   piece:"Ravel · Jeux d'eau",      file:'audio/dawn-ravel-jeux-deau.mp3',       vol:0.55 },
+    midday: { composer:'Fauré',   piece:'Fauré · Sicilienne',      file:'audio/midday-faure-sicilienne.mp3',     vol:0.50 },
+    night:  { composer:'Debussy', piece:'Debussy · Clair de Lune', file:'audio/night-debussy-clair-de-lune.mp3', vol:0.62 }
+  };
+
+  const tracks = {};            // name -> HTMLAudioElement, created on first use
+  function getTrack(name){
+    if (!tracks[name]) {
+      const a = new Audio(music[name].file);
+      a.loop = true; a.preload = 'none'; a.volume = 0;
+      tracks[name] = a;
+    }
+    return tracks[name];
+  }
+
+  // requestAnimationFrame-based volume fade, one in flight per element
+  function fade(audio, target, ms){
+    if (audio._fadeId) cancelAnimationFrame(audio._fadeId);
+    const start = audio.volume, t0 = performance.now();
+    (function tick(now){
+      const k = Math.min(1, (now - t0) / ms);
+      audio.volume = Math.max(0, Math.min(1, start + (target - start) * k));
+      if (k < 1) { audio._fadeId = requestAnimationFrame(tick); }
+      else { audio._fadeId = null; if (target === 0) { try { audio.pause(); } catch(e){} } }
+    })(performance.now());
+  }
+
+  // called by setLight on every phase change; no-ops until sound is on
+  function applyPhaseAudio(name){
+    if (!playing) return;
+    Object.keys(music).forEach(n => {
+      if (n !== name && tracks[n] && !tracks[n].paused) fade(tracks[n], 0, 1200);
+    });
+    const a = getTrack(name);
+    const p = a.play();
+    if (p && p.catch) p.catch(() => { soundLabel.textContent = 'Add /audio files to hear it'; });
+    fade(a, music[name].vol, 1500);
+    soundLabel.textContent = music[name].piece;
+  }
+
+  function startAudio(){
+    playing = true;
+    soundBtn.setAttribute('aria-pressed','true');
+    applyPhaseAudio(current);
+  }
+  function stopAudio(){
+    playing = false;
+    soundBtn.setAttribute('aria-pressed','false');
+    soundLabel.textContent = 'Sound off';
+    Object.values(tracks).forEach(a => fade(a, 0, 600));
+  }
+  soundBtn.addEventListener('click', () => { playing ? stopAudio() : startAudio(); });
+})();
+</script>
+</body>
+</html>
