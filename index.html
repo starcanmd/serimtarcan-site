@@ -25,6 +25,8 @@
 
   :root {
     --paper: #f4ece5;
+    --bg: #f4e6dc;
+    --blend: multiply;
     --ink: #2b2436;
     --muted: #6a5f78;
     --accent: #c07b75;
@@ -38,7 +40,7 @@
   html { scroll-behavior: smooth; }
 
   body {
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
     font-family: var(--body);
     font-weight: 300;
@@ -49,15 +51,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  #water { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-
-  /* paper veil: takes the saturation edge off the texture under content */
-  #veil {
-    position: fixed; inset: 0; z-index: 1; pointer-events: none;
-    background:
-      radial-gradient(ellipse 82% 58% at 50% 34%, color-mix(in srgb, var(--paper) 54%, transparent), transparent 76%),
-      linear-gradient(180deg, color-mix(in srgb, var(--paper) 30%, transparent), color-mix(in srgb, var(--paper) 22%, transparent));
-    transition: background 1.4s ease;
+  #water {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; mix-blend-mode: var(--blend);
   }
 
   .wrap { position: relative; z-index: 2; }
@@ -137,7 +133,7 @@
     text-shadow: none;
     transition: background .35s ease, color .35s ease, border-color .35s ease;
   }
-  .connect a:hover { background: var(--accent); color: var(--paper); }
+  .connect a:hover { background: var(--accent); color: #fff; }
   .connect a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
   .scrollcue {
@@ -241,7 +237,6 @@
 </head>
 <body>
   <canvas id="water"></canvas>
-  <div id="veil"></div>
 
   <div id="about" aria-hidden="true" role="dialog" aria-modal="true" aria-label="About Serim">
     <button class="about-close" id="about-close">Close ·  esc</button>
@@ -326,7 +321,7 @@
 
     <section class="archive">
       <p class="archive-eyebrow">On This Design</p>
-      <p class="page-note">The background is a slow watercolor that drifts as you move and shifts with the time of day. The phase of the day you land on depends on the hour you arrive. And each phase features a unique piece by an Impressionist composer.</p>
+      <p class="page-note">The background shifts in color with the time of day, and your cursor leaves soft brush strokes as it moves, loose and visible, the way the Impressionists painted. The phase of the day you land on depends on the hour you arrive. And each phase features a unique piece by an Impressionist composer.</p>
       <p class="page-credit">The compositions on this site are recorded, produced, and published by Gregor Quendel, and included by courtesy of classicals.de.</p>
 
       <p class="archive-eyebrow design-sub">Why This Design</p>
@@ -354,26 +349,23 @@
   // ---- palettes: colored shadows, no true black, tuned for contrast ----
   const palettes = {
     dawn:   { paper:'#f4ece5', ink:'#2b2436', muted:'#6a5f78', accent:'#c07b75',
-              blobs:['#d8a6a0','#b3a3c6','#e0b56a','#8fb4ad','#c07b75'], daub:'#c07b75', dark:false },
+              bg:'#f4e6dc', daubs:['#d8a6a0','#c9a6c5','#e0b56a','#8fb4ad','#c07b75'], dark:false },
     midday: { paper:'#eff1eb', ink:'#232a36', muted:'#586273', accent:'#4f817c',
-              blobs:['#7fb3ad','#a3b58c','#a8c4cf','#d9c27a','#8fb4ad'], daub:'#4f817c', dark:false },
+              bg:'#ebeff0', daubs:['#7fb3ad','#a3b58c','#a8c4cf','#d9c27a','#4f817c'], dark:false },
     night:  { paper:'#18172a', ink:'#f0ebf6', muted:'#aaa3c0', accent:'#3b4ac0',
-              blobs:['#2e3350','#5f7ab3','#d9c27a','#6a5d8a','#9fb3d9'], daub:'#6f86b3', dark:true },
+              bg:'#191830', daubs:['#5f7ab3','#9fb3d9','#d9c27a','#7e8fd6','#6f86b3'], dark:true },
   };
   let current = 'dawn';
   let audioReady=false, playing=false, loop=null, synth=null, reverb=null, step=0;
 
   const root = document.documentElement;
-  function hexToRgba(hex, a) {
-    const h = hex.replace('#','');
-    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
-    return `rgba(${r},${g},${b},${a})`;
-  }
 
   function setLight(name) {
     current = name;
     const p = palettes[name];
     root.style.setProperty('--paper', p.paper);
+    root.style.setProperty('--bg', p.bg);
+    root.style.setProperty('--blend', p.dark ? 'screen' : 'multiply');
     root.style.setProperty('--ink', p.ink);
     root.style.setProperty('--muted', p.muted);
     root.style.setProperty('--accent', p.accent);
@@ -381,13 +373,17 @@
       b.setAttribute('aria-pressed', b.dataset.light === name ? 'true' : 'false');
     });
     applyPhaseAudio(name);
-    if (reduceMotion) drawStatic();
   }
   document.querySelectorAll('.light-toggle button').forEach(b => {
     b.addEventListener('click', () => setLight(b.dataset.light));
   });
 
-  // ---- water + daub canvas ----
+  // ---- cursor brush strokes ----
+  function hexToRgba(hex, a) {
+    const h = hex.replace('#','');
+    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
   const canvas = document.getElementById('water');
   const ctx = canvas.getContext('2d');
   let W, H, dpr;
@@ -395,14 +391,9 @@
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = canvas.width = innerWidth * dpr; H = canvas.height = innerHeight * dpr;
     canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
-    if (reduceMotion) drawStatic();
   }
   window.addEventListener('resize', resize);
-
-  const sources = Array.from({length:5}, (_,i) => ({
-    bx: Math.random(), by: Math.random(), phase: Math.random()*Math.PI*2,
-    speed: 0.00006 + Math.random()*0.00006, amp: 0.18 + Math.random()*0.12, idx: i
-  }));
+  resize();
 
   const daubs = [];
   let lastX = 0, lastY = 0;
@@ -411,59 +402,36 @@
     const x = e.clientX * dpr, y = e.clientY * dpr;
     if (Math.hypot(x-lastX, y-lastY) > 10*dpr) {
       const p = palettes[current];
-      const col = Math.random() < 0.5 ? p.daub : p.blobs[(Math.random()*p.blobs.length)|0];
-      daubs.push({ x, y, r: (26+Math.random()*40)*dpr, life: 1, col, vx:(Math.random()-0.5)*0.3*dpr, vy:(Math.random()-0.5)*0.3*dpr });
-      if (daubs.length > 80) daubs.shift();
+      const col = p.daubs[(Math.random()*p.daubs.length)|0];
+      daubs.push({ x, y, r:(26+Math.random()*40)*dpr, life:1, col,
+                   vx:(Math.random()-0.5)*0.3*dpr, vy:(Math.random()-0.5)*0.3*dpr });
+      if (daubs.length > 120) daubs.shift();
       lastX = x; lastY = y;
     }
   }, { passive: true });
 
-  function drawStatic() {
+  function frame() {
+    ctx.clearRect(0,0,W,H);
     const p = palettes[current];
-    const g = ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0, hexToRgba(p.blobs[1], p.dark?0.4:0.14));
-    g.addColorStop(0.5, hexToRgba(p.paper, 0));
-    g.addColorStop(1, hexToRgba(p.blobs[3], p.dark?0.32:0.12));
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.clearRect(0,0,W,H); ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-  }
-
-  function frame(t) {
-    const p = palettes[current];
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = hexToRgba(p.paper, 0.05);
-    ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation = p.dark ? 'screen' : 'multiply';
-    for (const s of sources) {
-      const x = (s.bx + Math.sin(t*s.speed + s.phase)*s.amp) * W;
-      const y = (s.by + Math.cos(t*s.speed*0.8 + s.phase)*s.amp) * H;
-      const r = Math.max(W,H) * 0.42;
-      const col = p.blobs[s.idx % p.blobs.length];
-      const g = ctx.createRadialGradient(x,y,0,x,y,r);
-      g.addColorStop(0, hexToRgba(col, p.dark?0.08:0.055));
-      g.addColorStop(1, hexToRgba(col, 0));
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-    }
     for (let i = daubs.length-1; i >= 0; i--) {
       const d = daubs[i];
-      d.x += d.vx; d.y += d.vy; d.life -= 0.012;
+      d.x += d.vx; d.y += d.vy; d.life -= 0.009;
       if (d.life <= 0) { daubs.splice(i,1); continue; }
       const g = ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r);
-      const a = (p.dark?0.12:0.10) * d.life;
+      const a = (p.dark ? 0.30 : 0.22) * d.life;
       g.addColorStop(0, hexToRgba(d.col, a));
       g.addColorStop(1, hexToRgba(d.col, 0));
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
     }
     requestAnimationFrame(frame);
   }
+  if (!reduceMotion) requestAnimationFrame(frame);
 
   // initial light from local hour
   const hr = new Date().getHours();
   const initial = hr >= 5 && hr < 11 ? 'dawn' : hr >= 11 && hr < 18 ? 'midday' : 'night';
 
-  resize();
   setLight(initial);
-  if (reduceMotion) { drawStatic(); } else { requestAnimationFrame(frame); }
 
   // ---- reveal ----
   requestAnimationFrame(() => document.getElementById('hero').classList.add('revealed'));
