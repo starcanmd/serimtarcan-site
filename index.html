@@ -544,6 +544,7 @@
   function startAudio(){
     playing = true;
     soundBtn.setAttribute('aria-pressed','true');
+    soundLabel.textContent = 'Sound on';
     applyPhaseAudio(current);
   }
   function stopAudio(){
