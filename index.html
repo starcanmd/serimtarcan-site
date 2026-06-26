@@ -557,7 +557,19 @@
       a.volume = 0;
     });
   }
-  soundBtn.addEventListener('click', () => { playing ? stopAudio() : startAudio(); });
+  let userSet = false;
+  soundBtn.addEventListener('click', () => { userSet = true; playing ? stopAudio() : startAudio(); });
+
+  // Browsers block audio until the visitor interacts with the page. Start on the
+  // first gesture anywhere, so music begins without having to find the toggle.
+  const gestures = ['pointerdown','touchstart','keydown'];
+  function firstGesture(e){
+    gestures.forEach(ev => document.removeEventListener(ev, firstGesture));
+    if (e.target.closest && e.target.closest('#sound')) return; // the toggle handles itself
+    if (!userSet && !playing) startAudio();
+  }
+   gestures.forEach(ev => document.addEventListener(ev, firstGesture, { passive:true }));
+   soundBtn.addEventListener('click', () => { playing ? stopAudio() : startAudio(); });
 })();
 </script>
 </body>
